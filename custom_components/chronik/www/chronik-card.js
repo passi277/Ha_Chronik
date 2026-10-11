@@ -4,7 +4,7 @@
  * Design follows the "HA Modern Home Cards" family.
  */
 
-const CARD_VERSION = "0.2.1";
+const CARD_VERSION = "0.3.0";
 
 const CAT = {
   rain: { icon: "mdi:weather-pouring", color: "#42a5f5" },
@@ -26,7 +26,7 @@ const I18N = {
     more: "{n} weitere", loading: "Lade …", empty: "In diesem Zeitraum ist nichts passiert.",
     refresh: "Aktualisieren", close: "Schließen", days: "{n} T", source: "Quelle",
     duration: "Dauer", amount: "Menge", water: "Wasser", counter: "Zähler vorher", time: "Zeit",
-    missing: "Chronik-Integration nicht geladen", runs: "{n}× ", findings: "Befunde",
+    missing: "Chronik-Integration nicht geladen", zoom: "Bild vergrößern", open_image: "Bild öffnen", runs: "{n}× ", findings: "Befunde",
     cat_rain: "Regen", cat_irrigation: "Bewässerung", cat_mowing: "Mähen", cat_pool: "Pool",
     cat_alarm: "Alarme", cat_ai: "KI-Befunde", cat_other: "Notizen",
     stat_rain: "Regen", stat_irrigation: "{n} Läufe", stat_irrigation1: "1 Lauf",
@@ -39,7 +39,7 @@ const I18N = {
     more: "{n} more", loading: "Loading …", empty: "Nothing happened in this period.",
     refresh: "Refresh", close: "Close", days: "{n} d", source: "Source",
     duration: "Duration", amount: "Amount", water: "Water", counter: "Counter before", time: "Time",
-    missing: "Chronik integration not loaded", runs: "{n}× ", findings: "findings",
+    missing: "Chronik integration not loaded", zoom: "Enlarge image", open_image: "Open image", runs: "{n}× ", findings: "findings",
     cat_rain: "Rain", cat_irrigation: "Irrigation", cat_mowing: "Mowing", cat_pool: "Pool",
     cat_alarm: "Alarms", cat_ai: "AI findings", cat_other: "Notes",
     stat_rain: "Rain", stat_irrigation: "{n} runs", stat_irrigation1: "1 run",
@@ -48,6 +48,9 @@ const I18N = {
 };
 
 const REFRESH_MS = 2 * 60_000;
+/** Signed media URLs are valid for a day – cache them across cards. */
+const URL_TTL_MS = 20 * 3600_000;
+const urlCache = new Map();
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
@@ -68,6 +71,8 @@ class ChronikCard extends HTMLElement {
     this._open = null;
     this._days = 7;
     this._sig = "";
+    this._urls = {};
+    this._pending = new Set();
   }
 
   static getStubConfig() {
@@ -180,6 +185,68 @@ class ChronikCard extends HTMLElement {
       return parts.join(" · ");
     }
     return "";
+  }
+
+  _images(e) {
+    const imgs = e?.data?.images;
+    return Array.isArray(imgs) ? imgs.filter((p) => typeof p === "string" && p) : [];
+  }
+
+  /** Placeholder that gets an <img> as soon as the URL is resolved. */
+  _imgSlot(path, cls) {
+    const url = this._urls[path];
+    return `<span class="${cls}" imgpath="${esc(path)}">${url ? `<img src="${esc(url)}" alt="" loading="lazy">` : ""}</span>`;
+  }
+
+  _directUrl(path) {
+    if (/^(https?:|data:|blob:)/.test(path) || path.startsWith("/local/") || path.startsWith("/api/")) return path;
+    if (path.startsWith("/config/www/")) return `/local/${path.slice("/config/www/".length)}`;
+    return null;
+  }
+
+  _mediaId(path) {
+    if (path.startsWith("media-source://")) return path;
+    const m = path.match(/^\/media\/(?:local\/)?(.+)$/);
+    return m ? `media-source://media_source/local/${m[1]}` : null;
+  }
+
+  /** Resolve image paths to (signed) URLs and fill the placeholders in place. */
+  _resolveImages(paths) {
+    if (!this._hass) return;
+    for (const path of new Set(paths)) {
+      if (this._urls[path] || this._pending.has(path)) continue;
+      const direct = this._directUrl(path);
+      const cached = urlCache.get(path);
+      if (direct || (cached && Date.now() - cached.at < URL_TTL_MS)) {
+        this._setUrl(path, direct || cached.url);
+        continue;
+      }
+      const id = this._mediaId(path);
+      if (!id || !this._hass.callWS) continue;
+      this._pending.add(path);
+      this._hass.callWS({ type: "media_source/resolve_media", media_content_id: id })
+        .then((r) => {
+          if (!r?.url) return;
+          const url = /^(https?:|data:)/.test(r.url) ? r.url : this._hass.hassUrl?.(r.url) ?? r.url;
+          urlCache.set(path, { url, at: Date.now() });
+          this._setUrl(path, url);
+        })
+        .catch(() => { /* image gone – keep the icon */ })
+        .finally(() => this._pending.delete(path));
+    }
+  }
+
+  _setUrl(path, url) {
+    this._urls[path] = url;
+    this.shadowRoot.querySelectorAll("[imgpath]").forEach((el) => {
+      if (el.getAttribute("imgpath") !== path || el.querySelector("img")) return;
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "";
+      img.loading = "lazy";
+      img.addEventListener("error", () => { el.classList.add("broken"); img.remove(); });
+      el.appendChild(img);
+    });
   }
 
   /** Title without the values that are shown separately. */
@@ -368,8 +435,12 @@ class ChronikCard extends HTMLElement {
         const value = this._value(e);
         const range = e.end && e.end !== e.start ? `${this._time(e.start)}–${this._time(e.end)}` : this._time(e.start);
         const desc = this._desc(e);
-        return `<button class="item ${e.running ? "running" : ""}" style="--cc:${CAT[c].color};--i:${idx++}" data-uid="${esc(e.uid)}">
-          <span class="rail"><span class="dot"><ha-icon icon="${this._icon(e)}"></ha-icon></span></span>
+        const imgs = this._images(e);
+        const thumb = imgs.length
+          ? `<span class="thumb-wrap">${this._imgSlot(imgs[imgs.length - 1], "thumb")}${imgs.length > 1 ? `<span class="t-count"><ha-icon icon="mdi:image-multiple"></ha-icon>${imgs.length}</span>` : ""}</span>`
+          : "";
+        return `<button class="item ${e.running ? "running" : ""} ${imgs.length ? "has-img" : ""}" style="--cc:${CAT[c].color};--i:${idx++}" data-uid="${esc(e.uid)}">
+          <span class="rail"><span class="dot"><ha-icon icon="${this._icon(e)}"></ha-icon></span></span>${thumb}
           <span class="i-text">
             <span class="i-head"><b>${esc(this._label(e))}</b>${value ? `<span class="pill">${esc(value)}</span>` : ""}</span>
             <span class="i-meta"><time>${esc(e.running ? `${this._t("since")} ${this._time(e.start)}` : range)}</time></span>
@@ -409,11 +480,20 @@ class ChronikCard extends HTMLElement {
     if (d.counter_before != null) facts.push([this._t("counter"), `${this._num(d.counter_before)} ${d.counter_unit || ""}`.trim()]);
     const text = this._desc(e);
     const source = e.source && this._hass?.states[e.source];
+    const imgs = this._images(e);
+    const close = `<button class="d-close" data-close="1" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button>`;
+    const head = imgs.length
+      ? `<div class="d-gal">
+          <div class="slides">${imgs.map((p, i) => `<button class="slide" data-full="${i + 1}" aria-label="${esc(this._t("zoom"))}">${this._imgSlot(p, "d-pic")}<span class="ph-icon"><ha-icon icon="${this._icon(e)}"></ha-icon></span></button>`).join("")}</div>
+          ${imgs.length > 1 ? `<button class="g-nav prev" data-gal="-1" aria-label="‹"><ha-icon icon="mdi:chevron-left"></ha-icon></button>
+            <button class="g-nav next" data-gal="1" aria-label="›"><ha-icon icon="mdi:chevron-right"></ha-icon></button>
+            <span class="g-count">1 / ${imgs.length}</span>` : ""}
+          <span class="g-zoom"><ha-icon icon="mdi:arrow-expand"></ha-icon></span>
+          ${close}
+        </div>`
+      : `<div class="d-head"><span class="d-icon"><ha-icon icon="${this._icon(e)}"></ha-icon></span>${close}</div>`;
     return `<dialog class="detail" style="--cc:${CAT[c].color}">
-      <div class="d-head">
-        <span class="d-icon"><ha-icon icon="${this._icon(e)}"></ha-icon></span>
-        <button class="d-close" data-close="1" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button>
-      </div>
+      ${head}
       <div class="d-body">
         <span class="badge"><ha-icon icon="${CAT[c].icon}"></ha-icon>${esc(this._t(`cat_${c}`))}</span>
         <h3>${esc(this._label(e))}</h3>
@@ -425,9 +505,11 @@ class ChronikCard extends HTMLElement {
     </dialog>`;
   }
 
-  _render() {
+  _render(force = false) {
     if (!this._config) return;
     const root = this.shadowRoot;
+    // Do not rebuild while the detail dialog is open (keeps gallery/zoom state).
+    if (!force && this._open && root.querySelector("dialog.detail[open]")) return;
     if (this._error && !this._events.length) {
       root.innerHTML = `<style>${STYLES}</style><ha-card><div class="missing"><ha-icon icon="mdi:alert-circle-outline"></ha-icon>${esc(this._t("missing"))}<small>${esc(this._error)}</small></div></ha-card>`;
       return;
@@ -466,10 +548,38 @@ class ChronikCard extends HTMLElement {
     root.querySelector("ha-card").addEventListener("click", (ev) => this._onClick(ev));
     const dlg = root.querySelector("dialog.detail");
     if (dlg) {
-      dlg.addEventListener("close", () => { this._open = null; this._render(); });
+      dlg.addEventListener("close", () => { this._open = null; this._render(true); });
       dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close(); });
+      const slides = dlg.querySelector(".slides");
+      const count = dlg.querySelector(".g-count");
+      if (slides && count) {
+        slides.addEventListener("scroll", () => {
+          const i = Math.round(slides.scrollLeft / Math.max(1, slides.clientWidth));
+          count.textContent = `${i + 1} / ${slides.children.length}`;
+        }, { passive: true });
+      }
       if (!dlg.open) dlg.showModal?.();
     }
+    const paths = list.slice(0, this._shown).flatMap((e) => this._images(e).slice(-1));
+    if (this._open) paths.push(...this._images(this._open));
+    this._resolveImages(paths);
+  }
+
+  _openLightbox(index) {
+    const imgs = this._images(this._open);
+    const url = this._urls[imgs[index]];
+    const dlg = this.shadowRoot.querySelector("dialog.detail");
+    if (!url || !dlg) return;
+    const lb = document.createElement("div");
+    lb.className = "lightbox";
+    lb.innerHTML = `<img src="${esc(url)}" alt="">
+      <a class="lb-btn open" href="${esc(url)}" target="_blank" rel="noopener" aria-label="${esc(this._t("open_image"))}"><ha-icon icon="mdi:open-in-new"></ha-icon></a>
+      <button class="lb-btn close" aria-label="${esc(this._t("close"))}"><ha-icon icon="mdi:close"></ha-icon></button>`;
+    lb.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (!ev.composedPath().some((n) => n.classList?.contains("open"))) lb.remove();
+    });
+    dlg.appendChild(lb);
   }
 
   _onClick(ev) {
@@ -478,12 +588,18 @@ class ChronikCard extends HTMLElement {
     const ds = el.dataset;
     if (ds.refresh) { this._haptic("light"); this._load(true); return; }
     if (ds.days) { this._haptic(); this._days = Number(ds.days); this._day = null; this._load(true); return; }
-    if (ds.filter) { this._haptic(); this._filter = this._filter === ds.filter && ds.filter !== "all" ? "all" : ds.filter; this._shown = Number(this._config.limit) || 25; this._render(); return; }
-    if (ds.day) { this._haptic(); this._day = this._day === ds.day ? null : ds.day; this._render(); return; }
-    if (ds.more) { this._shown += Number(this._config.limit) || 25; this._render(); return; }
+    if (ds.filter) { this._haptic(); this._filter = this._filter === ds.filter && ds.filter !== "all" ? "all" : ds.filter; this._shown = Number(this._config.limit) || 25; this._render(true); return; }
+    if (ds.day) { this._haptic(); this._day = this._day === ds.day ? null : ds.day; this._render(true); return; }
+    if (ds.more) { this._shown += Number(this._config.limit) || 25; this._render(true); return; }
     if (ds.close) { this.shadowRoot.querySelector("dialog.detail")?.close(); return; }
+    if (ds.gal) {
+      const slides = this.shadowRoot.querySelector("dialog.detail .slides");
+      slides?.scrollBy({ left: Number(ds.gal) * slides.clientWidth, behavior: "smooth" });
+      return;
+    }
+    if (ds.full) { this._haptic("light"); this._openLightbox(Number(ds.full) - 1); return; }
     if (ds.entity) { const id = ds.entity; this.shadowRoot.querySelector("dialog.detail")?.close(); this._moreInfo(id); return; }
-    if (ds.uid) { this._haptic("light"); this._open = this._events.find((e) => e.uid === ds.uid) || null; this._render(); }
+    if (ds.uid) { this._haptic("light"); this._open = this._events.find((e) => e.uid === ds.uid) || null; this._render(true); }
   }
 }
 
@@ -596,6 +712,16 @@ const STYLES = `
     cursor: pointer; text-align: left; border-radius: 12px; transition: background 0.2s; }
   ha-card.intro .item { animation: fade-up 0.4s var(--ease-out) both; animation-delay: calc(min(var(--i), 12) * 25ms); }
   .item:hover { background: rgba(127,127,127,0.07); }
+  .item.has-img { grid-template-columns: 28px 72px minmax(0, 1fr); }
+  .thumb-wrap { position: relative; width: 72px; height: 54px; }
+  .thumb { display: block; width: 100%; height: 100%; border-radius: 10px; overflow: hidden;
+    background: color-mix(in srgb, var(--cc) 14%, rgba(127,127,127,0.08)); }
+  .thumb img, .d-pic img { display: block; width: 100%; height: 100%; object-fit: cover; animation: img-in 0.35s ease both; }
+  @keyframes img-in { from { opacity: 0; } to { opacity: 1; } }
+  .t-count { position: absolute; right: 4px; bottom: 4px; display: inline-flex; align-items: center; gap: 2px; padding: 1px 5px 1px 4px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); }
+  .t-count ha-icon { --mdc-icon-size: 12px; }
+  @container (max-width: 340px) { .item.has-img { grid-template-columns: 24px 56px minmax(0, 1fr); } .thumb-wrap { width: 56px; height: 42px; } }
   @keyframes fade-up { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   .rail { position: relative; align-self: stretch; display: flex; justify-content: center; }
   .rail::before { content: ""; position: absolute; top: -7px; bottom: -7px; width: 2px; background: rgba(127,127,127,0.2); }
@@ -624,6 +750,34 @@ const STYLES = `
   dialog.detail { width: min(94vw, 520px); max-height: 92dvh; padding: 0; border: none; border-radius: var(--ha-card-border-radius, 16px); overflow: auto;
     color: var(--primary-text-color); background: var(--card-background-color, var(--ha-card-background, #1c1c1c)); }
   dialog.detail::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
+  .d-gal { position: relative; aspect-ratio: 16 / 9; background: #0d0d0d; }
+  .slides { display: flex; width: 100%; height: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .slides::-webkit-scrollbar { display: none; }
+  .slide { position: relative; flex: 0 0 100%; height: 100%; padding: 0; border: none; background: none; scroll-snap-align: center; cursor: zoom-in; }
+  .d-pic { position: absolute; inset: 0; z-index: 1; }
+  .d-pic img { object-fit: contain; }
+  .d-pic:has(img) { background: #0d0d0d; }
+  .d-pic.broken { display: none; }
+  .ph-icon { position: absolute; inset: 0; display: grid; place-items: center;
+    background: radial-gradient(120% 120% at 30% 10%, color-mix(in srgb, var(--cc) 45%, #222), #121212); }
+  .ph-icon ha-icon { --mdc-icon-size: 56px; color: color-mix(in srgb, var(--cc) 70%, #fff); opacity: 0.6; }
+  .g-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 36px; height: 36px; border-radius: 50%; border: none; padding: 0;
+    display: grid; place-items: center; cursor: pointer; color: #fff; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); }
+  .g-nav.prev { left: 10px; } .g-nav.next { right: 10px; }
+  .g-nav ha-icon { --mdc-icon-size: 22px; }
+  .g-count, .g-zoom { position: absolute; bottom: 10px; z-index: 2; padding: 3px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700; color: #fff;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); pointer-events: none; }
+  .g-count { left: 10px; }
+  .g-zoom { right: 10px; display: grid; place-items: center; padding: 5px; }
+  .g-zoom ha-icon { --mdc-icon-size: 16px; }
+  .d-gal .d-close { z-index: 3; }
+  .lightbox { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(0,0,0,0.92); cursor: zoom-out;
+    animation: img-in 0.25s ease both; }
+  .lightbox img { max-width: 100vw; max-height: 100dvh; object-fit: contain; }
+  .lb-btn { position: absolute; top: 14px; width: 40px; height: 40px; border-radius: 50%; border: none; padding: 0; display: grid; place-items: center;
+    cursor: pointer; color: #fff; background: rgba(255,255,255,0.14); text-decoration: none; }
+  .lb-btn.close { right: 14px; } .lb-btn.open { right: 62px; }
+  .lb-btn ha-icon { --mdc-icon-size: 22px; }
   .d-head { position: relative; height: 110px; display: grid; place-items: center;
     background: radial-gradient(120% 120% at 30% 10%, color-mix(in srgb, var(--cc) 55%, #222), color-mix(in srgb, var(--cc) 12%, #121212)); }
   .d-icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: color-mix(in srgb, var(--cc) 80%, #000);

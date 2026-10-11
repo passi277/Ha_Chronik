@@ -6,7 +6,7 @@ from datetime import timedelta
 
 DOMAIN = "chronik"
 # Keep in sync with manifest.json and www/chronik-card.js.
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 
 CAT_RAIN = "rain"
 CAT_IRRIGATION = "irrigation"
@@ -48,6 +48,8 @@ CONF_POOL_THRESHOLD = "pool_reset_threshold"
 CONF_ALARM_ENTITIES = "alarm_entities"
 CONF_ALARM_LOG_ARMING = "alarm_log_arming"
 CONF_AI_ENTITIES = "ai_entities"
+CONF_AI_IMAGE_DIRS = "ai_image_dirs"
+CONF_AI_IMAGE_WINDOW = "ai_image_window_minutes"
 CONF_RETENTION_DAYS = "retention_days"
 
 DEFAULTS: dict[str, object] = {
@@ -57,6 +59,7 @@ DEFAULTS: dict[str, object] = {
     CONF_MOWING_MIN: 1,
     CONF_POOL_THRESHOLD: 1.0,
     CONF_ALARM_LOG_ARMING: False,
+    CONF_AI_IMAGE_WINDOW: 3,
     CONF_RETENTION_DAYS: 1095,
 }
 

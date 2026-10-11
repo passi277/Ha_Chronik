@@ -29,6 +29,7 @@ ADD_ENTRY_SCHEMA = vol.Schema(
         vol.Optional("start"): cv.datetime,
         vol.Optional("end"): cv.datetime,
         vol.Optional("data", default={}): dict,
+        vol.Optional("images", default=[]): vol.All(cv.ensure_list, [cv.string]),
     }
 )
 DELETE_ENTRY_SCHEMA = vol.Schema(
@@ -76,7 +77,7 @@ def async_register_services(hass: HomeAssistant) -> None:
             description=call.data["description"],
             start=start,
             end=_local(call.data.get("end")),
-            data=call.data["data"],
+            data={**call.data["data"], **({"images": call.data["images"]} if call.data["images"] else {})},
             origin=ORIGIN_SERVICE,
         )
         return {"uid": ev.uid}

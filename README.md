@@ -31,6 +31,14 @@ Während ein Lauf aktiv ist, ist der Kalender `on` – das lässt sich auch als 
 
 Manuell: Ordner `custom_components/chronik` nach `config/custom_components/` kopieren.
 
+## Bilder zu KI-Befunden
+
+Unter *KI-Befunde* lässt sich ein **Bildordner** angeben (z. B. `/media/llmvision/snapshots`).
+Bilder, die dort kurz vor einem neuen Befund gespeichert wurden (Zeitfenster einstellbar, Standard 3 min),
+werden automatisch an den Eintrag gehängt – ideal für LLM Vision mit `expose_images: true`.
+Die Karte zeigt sie als Vorschaubild in der Zeitleiste und als Galerie mit Vollbild im Detailfenster.
+`chronik.backfill` hängt Bilder auch nachträglich an ältere Befunde, solange die Dateien noch existieren.
+
 ## Services
 
 ### `chronik.add_entry`
@@ -44,7 +52,8 @@ data:
   description: "{{ response.response_text }}"
 ```
 
-Optional: `start`, `end` (Standard: jetzt, Punkt-Eintrag), `data` (beliebige Zusatzwerte).
+Optional: `start`, `end` (Standard: jetzt, Punkt-Eintrag), `data` (beliebige Zusatzwerte),
+`images` (Bildpfade, z. B. `/media/llmvision/snapshots/x.jpg` oder `/local/x.jpg`).
 Antwort: `uid` des Eintrags.
 
 ### `chronik.backfill`

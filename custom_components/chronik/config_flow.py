@@ -19,6 +19,8 @@ from .const import (
     CAT_POOL,
     CAT_RAIN,
     CONF_AI_ENTITIES,
+    CONF_AI_IMAGE_DIRS,
+    CONF_AI_IMAGE_WINDOW,
     CONF_ALARM_ENTITIES,
     CONF_ALARM_LOG_ARMING,
     CONF_IRRIGATION_ENTITIES,
@@ -98,6 +100,9 @@ STEP_FIELDS: dict[str, dict[str, tuple[Any, bool]]] = {
     },
     CAT_AI: {
         CONF_AI_ENTITIES: (_entities(["input_text", "sensor", "text"]), True),
+        # Optional text: treated like an entity field so it can be cleared.
+        CONF_AI_IMAGE_DIRS: (selector.TextSelector(selector.TextSelectorConfig(multiline=True)), True),
+        CONF_AI_IMAGE_WINDOW: (_minutes(1, 60), False),
     },
     STEP_GENERAL: {
         CONF_RETENTION_DAYS: (

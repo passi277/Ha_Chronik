@@ -66,7 +66,13 @@
         "title": "KI-Befunde",
         "description": "Text-Entitäten (input_text/sensor) mit KI-Ergebnissen. Jeder neue Text wird ein Eintrag.",
         "data": {
-          "ai_entities": "Text-Entitäten"
+          "ai_entities": "Text-Entitäten",
+          "ai_image_dirs": "Bildordner (optional)",
+          "ai_image_window_minutes": "Zeitfenster für Bilder"
+        },
+        "data_description": {
+          "ai_image_dirs": "Bilder, die kurz vor einem Befund hier gespeichert wurden, werden angehängt, z. B. /media/llmvision/snapshots. Ein Ordner pro Zeile.",
+          "ai_image_window_minutes": "Wie viele Minuten vor dem Befund ein Bild gespeichert worden sein darf."
         }
       }
     }
@@ -145,7 +151,13 @@
         "title": "KI-Befunde",
         "description": "Text-Entitäten (input_text/sensor) mit KI-Ergebnissen. Jeder neue Text wird ein Eintrag.",
         "data": {
-          "ai_entities": "Text-Entitäten"
+          "ai_entities": "Text-Entitäten",
+          "ai_image_dirs": "Bildordner (optional)",
+          "ai_image_window_minutes": "Zeitfenster für Bilder"
+        },
+        "data_description": {
+          "ai_image_dirs": "Bilder, die kurz vor einem Befund hier gespeichert wurden, werden angehängt, z. B. /media/llmvision/snapshots. Ein Ordner pro Zeile.",
+          "ai_image_window_minutes": "Wie viele Minuten vor dem Befund ein Bild gespeichert worden sein darf."
         }
       },
       "general": {
@@ -226,6 +238,10 @@
         "data": {
           "name": "Daten",
           "description": "Zusätzliche Werte, die mit dem Eintrag gespeichert werden."
+        },
+        "images": {
+          "name": "Bilder",
+          "description": "Bildpfade, z. B. /media/llmvision/snapshots/x.jpg oder /local/x.jpg."
         }
       }
     },

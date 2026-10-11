@@ -66,7 +66,13 @@
         "title": "AI findings",
         "description": "Text entities (input_text/sensor) holding AI results. Every new text becomes an entry.",
         "data": {
-          "ai_entities": "Text entities"
+          "ai_entities": "Text entities",
+          "ai_image_dirs": "Image folders (optional)",
+          "ai_image_window_minutes": "Image time window"
+        },
+        "data_description": {
+          "ai_image_dirs": "Images saved here shortly before a finding are attached to it, e.g. /media/llmvision/snapshots. One folder per line.",
+          "ai_image_window_minutes": "How many minutes before the finding an image may have been saved."
         }
       }
     }
@@ -145,7 +151,13 @@
         "title": "AI findings",
         "description": "Text entities (input_text/sensor) holding AI results. Every new text becomes an entry.",
         "data": {
-          "ai_entities": "Text entities"
+          "ai_entities": "Text entities",
+          "ai_image_dirs": "Image folders (optional)",
+          "ai_image_window_minutes": "Image time window"
+        },
+        "data_description": {
+          "ai_image_dirs": "Images saved here shortly before a finding are attached to it, e.g. /media/llmvision/snapshots. One folder per line.",
+          "ai_image_window_minutes": "How many minutes before the finding an image may have been saved."
         }
       },
       "general": {
@@ -226,6 +238,10 @@
         "data": {
           "name": "Data",
           "description": "Additional values stored with the entry."
+        },
+        "images": {
+          "name": "Images",
+          "description": "Image paths, e.g. /media/llmvision/snapshots/x.jpg or /local/x.jpg."
         }
       }
     },

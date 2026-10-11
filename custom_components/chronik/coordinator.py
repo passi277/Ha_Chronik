@@ -19,8 +19,11 @@ from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CAT_AI,
     CATEGORIES,
     CATEGORY_SOURCES,
+    CONF_AI_IMAGE_DIRS,
+    CONF_AI_IMAGE_WINDOW,
     CONF_RETENTION_DAYS,
     DEFAULTS,
     ORIGIN_BACKFILL,
@@ -30,6 +33,7 @@ from .const import (
     signal_updated,
 )
 from .detectors import Action, Delete, Detector, Snapshot, Upsert, build_detectors
+from .images import find_images, parse_dirs
 from .models import ChronikEvent
 from .store import ChronikStore
 
@@ -154,13 +158,46 @@ class ChronikCoordinator:
                     if self.store.overlapping_other(ev, {ORIGIN_LIVE, ORIGIN_MANUAL}):
                         continue
                 ev.origin = existing.origin if existing and origin == ORIGIN_LIVE else origin
+                if existing and existing.data.get("images") and not ev.data.get("images"):
+                    ev.data["images"] = existing.data["images"]
                 self.store.upsert(ev)
                 changed = True
+                if origin == ORIGIN_LIVE and self._wants_images(ev):
+                    self.hass.async_create_task(self._async_attach_images(ev.uid))
             elif isinstance(action, Delete):
                 existing = self.store.get(action.uid)
                 if existing and (origin != ORIGIN_BACKFILL or existing.origin == ORIGIN_BACKFILL):
                     changed |= self.store.delete(action.uid)
         return changed
+
+    # Images -----------------------------------------------------------------
+
+    def _wants_images(self, ev: ChronikEvent) -> bool:
+        return (
+            ev.category == CAT_AI
+            and not ev.data.get("images")
+            and bool(parse_dirs(self.options.get(CONF_AI_IMAGE_DIRS)))
+        )
+
+    async def _async_find_images(self, ev: ChronikEvent) -> list[str]:
+        dirs = parse_dirs(self.options.get(CONF_AI_IMAGE_DIRS))
+        window = timedelta(minutes=float(self.options.get(CONF_AI_IMAGE_WINDOW) or 3))
+        return await self.hass.async_add_executor_job(find_images, dirs, ev.start, window)
+
+    async def _async_attach_images(self, uid: str, notify: bool = True) -> bool:
+        """Link snapshots saved shortly before an AI finding to the entry."""
+        ev = self.store.get(uid)
+        if ev is None or not self._wants_images(ev):
+            return False
+        images = await self._async_find_images(ev)
+        if not images:
+            return False
+        ev = ev.copy()
+        ev.data["images"] = images
+        self.store.upsert(ev)
+        if notify:
+            self._notify()
+        return True
 
     @callback
     def _notify(self) -> None:
@@ -274,6 +311,9 @@ class ChronikCoordinator:
             for det in index[entity_id]:
                 self._apply(det.feed(snap), ORIGIN_BACKFILL)
         added = len({ev.uid for ev in self.store.all()} - before)
+        # Link images to all AI findings of the period that have none yet.
+        for ev in self.store.between(start, end, [CAT_AI]):
+            await self._async_attach_images(ev.uid, notify=False)
         _LOGGER.debug("Backfill of %s days added %s entries", days, added)
         self._notify()
         return added
