@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import timedelta
 
 DOMAIN = "chronik"
+# Keep in sync with manifest.json and www/chronik-card.js.
+VERSION = "0.2.1"
 
 CAT_RAIN = "rain"
 CAT_IRRIGATION = "irrigation"

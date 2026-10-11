@@ -4,7 +4,7 @@
  * Design follows the "HA Modern Home Cards" family.
  */
 
-const CARD_VERSION = "0.2.0";
+const CARD_VERSION = "0.2.1";
 
 const CAT = {
   rain: { icon: "mdi:weather-pouring", color: "#42a5f5" },
