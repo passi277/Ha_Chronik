@@ -79,6 +79,10 @@ days: 7              # 7 oder 30 (umschaltbar in der Karte)
 # animations: full   # full | reduced | off
 ```
 
+Zeigt die Karte „Konfigurationsfehler“, wurde der Kartencode noch nicht geladen (z. B. in der
+Companion-App ohne Neuladen). Dann die App/Seite neu laden oder die Karte als Dashboard-Ressource
+eintragen: *Einstellungen → Dashboards → Ressourcen* → `/chronik_static/chronik-card.js`, Typ *JavaScript-Modul*.
+
 Kennzahlen und Tage im Wochenstreifen sind antippbar und filtern die Zeitleiste;
 ein Eintrag öffnet die Detailansicht. Laufende Vorgänge erscheinen oben als Banner.
 
