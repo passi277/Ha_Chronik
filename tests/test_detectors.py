@@ -146,3 +146,7 @@ def test_ai_findings_baseline_and_changes() -> None:
     det2.restore([ev])
     assert det2.feed(snap("input_text.pool_ki", "Wasser klar · sauber", 500)) == []
     assert upserts(det2.feed(snap("input_text.pool_ki", "Algen sichtbar", 600)))
+    # Jumping back to a text seen a few minutes ago is not a new finding.
+    assert det2.feed(snap("input_text.pool_ki", "Wasser klar · sauber", 610)) == []
+    # The same text a day later is.
+    assert upserts(det2.feed(snap("input_text.pool_ki", "Algen sichtbar", 610 + 25 * 60)))

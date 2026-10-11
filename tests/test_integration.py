@@ -131,7 +131,7 @@ async def test_live_recording(
     assert len(summary) == 1
     assert "🌧️ 2,5 mm" in summary[0]["summary"]
     assert "💧 1× · 18 min" in summary[0]["summary"]
-    assert "🤖 1 Befunde" in summary[0]["summary"]
+    assert "🤖 1 Befund" in summary[0]["summary"]
 
 
 async def test_open_run_survives_restart(

@@ -58,7 +58,7 @@ def build_summary(
     if alarm := [e for e in by_cat.get(CAT_ALARM, []) if e.data.get("kind") != "arming"]:
         parts.append(f"{CATEGORY_EMOJI[CAT_ALARM]} {len(alarm)}")
     if ai := by_cat.get(CAT_AI):
-        parts.append(f"{CATEGORY_EMOJI[CAT_AI]} {len(ai)} {t['findings']}")
+        parts.append(f"{CATEGORY_EMOJI[CAT_AI]} {len(ai)} {t['finding'] if len(ai) == 1 else t['findings']}")
     # Categories without a dedicated formatter (e.g. manual notes).
     known = {CAT_RAIN, CAT_IRRIGATION, CAT_MOWING, CAT_POOL, CAT_ALARM, CAT_AI}
     other = [e for e in events if e.category not in known]

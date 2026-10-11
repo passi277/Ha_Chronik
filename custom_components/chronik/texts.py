@@ -20,6 +20,7 @@ _TEXTS: dict[str, dict[str, Any]] = {
         "text": "Befund",
         "backwash": "Rückspülen",
         "summary": "Tagesbilanz",
+        "finding": "Befund",
         "findings": "Befunde",
         "runs": "Läufe",
         "arming": {
@@ -46,6 +47,7 @@ _TEXTS: dict[str, dict[str, Any]] = {
         "text": "Finding",
         "backwash": "Backwash",
         "summary": "Daily summary",
+        "finding": "finding",
         "findings": "findings",
         "runs": "runs",
         "arming": {
