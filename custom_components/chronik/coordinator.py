@@ -33,7 +33,7 @@ from .const import (
     signal_updated,
 )
 from .detectors import Action, Delete, Detector, Snapshot, Upsert, build_detectors
-from .images import find_images, parse_dirs
+from .images import copy_images, delete_copies, find_images, parse_dirs
 from .models import ChronikEvent
 from .store import ChronikStore
 
@@ -124,7 +124,17 @@ class ChronikCoordinator:
         days = int(self.options.get(CONF_RETENTION_DAYS) or 0)
         if days <= 0:
             return 0
-        return self.store.purge(dt_util.utcnow() - timedelta(days=days))
+        removed = self.store.purge(dt_util.utcnow() - timedelta(days=days))
+        self._delete_images(removed)
+        return len(removed)
+
+    def _delete_images(self, events: list[ChronikEvent]) -> None:
+        images = [path for ev in events for path in ev.data.get("images") or []]
+        if images:
+            self.hass.async_create_task(self._async_delete_copies(images))
+
+    async def _async_delete_copies(self, images: list[str]) -> None:
+        await self.hass.async_add_executor_job(delete_copies, images, self._media_root())
 
     # Helpers -----------------------------------------------------------------
 
@@ -179,6 +189,9 @@ class ChronikCoordinator:
             and bool(parse_dirs(self.options.get(CONF_AI_IMAGE_DIRS)))
         )
 
+    def _media_root(self) -> str:
+        return self.hass.config.media_dirs.get("local") or self.hass.config.path("media")
+
     async def _async_find_images(self, ev: ChronikEvent) -> list[str]:
         dirs = parse_dirs(self.options.get(CONF_AI_IMAGE_DIRS))
         window = timedelta(minutes=float(self.options.get(CONF_AI_IMAGE_WINDOW) or 3))
@@ -192,6 +205,8 @@ class ChronikCoordinator:
         images = await self._async_find_images(ev)
         if not images:
             return False
+        # LLM Vision removes snapshots that are not in its timeline – keep copies.
+        images = await self.hass.async_add_executor_job(copy_images, images, ev.uid, self._media_root())
         ev = ev.copy()
         ev.data["images"] = images
         self.store.upsert(ev)
@@ -260,6 +275,8 @@ class ChronikCoordinator:
     @callback
     def delete_entry(self, uid: str) -> bool:
         """Delete an entry."""
+        if (ev := self.store.get(uid)) is not None:
+            self._delete_images([ev])
         removed = self.store.delete(uid)
         if removed:
             self._notify()

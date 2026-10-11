@@ -121,11 +121,11 @@ class ChronikStore:
                 return True
         return False
 
-    def purge(self, before: datetime) -> int:
-        """Remove closed entries that ended before a date."""
-        old = [uid for uid, ev in self._events.items() if ev.end is not None and ev.end < before]
-        for uid in old:
-            del self._events[uid]
+    def purge(self, before: datetime) -> list[ChronikEvent]:
+        """Remove closed entries that ended before a date and return them."""
+        old = [ev for ev in self._events.values() if ev.end is not None and ev.end < before]
+        for ev in old:
+            del self._events[ev.uid]
         if old:
             self._changed()
-        return len(old)
+        return old

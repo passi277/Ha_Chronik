@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.chronik.const import DOMAIN
-from custom_components.chronik.images import find_images, parse_dirs
+from custom_components.chronik.images import copy_images, delete_copies, find_images, parse_dirs
 
 
 def _touch(path: Path, when: datetime) -> None:
@@ -27,6 +27,13 @@ def test_find_images(tmp_path: Path) -> None:
     found = find_images([str(tmp_path), "/does/not/exist"], now, timedelta(minutes=3))
     assert [Path(p).name for p in found] == ["pool.jpg", "cam2.png"]
     assert parse_dirs("/a/, /b\n\n/c") == ["/a", "/b", "/c"]
+
+    media = tmp_path / "media"
+    copies = copy_images([str(tmp_path / "pool.jpg"), "/missing.jpg"], "ai:x:1", str(media))
+    assert copies == ["media-source://media_source/local/chronik/ai_x_1-0.jpg", "/missing.jpg"]
+    assert (media / "chronik" / "ai_x_1-0.jpg").exists()
+    delete_copies(copies, str(media))
+    assert not (media / "chronik" / "ai_x_1-0.jpg").exists()
 
 
 async def test_ai_finding_gets_images(hass: HomeAssistant, tmp_path: Path, hass_ws_client) -> None:
@@ -48,7 +55,17 @@ async def test_ai_finding_gets_images(hass: HomeAssistant, tmp_path: Path, hass_
 
     events = entry.runtime_data.store.all()
     assert len(events) == 1
-    assert events[0].data["images"] == [str(snapshot)]
+    # The snapshot is copied into <media>/chronik and referenced via media source.
+    [image] = events[0].data["images"]
+    assert image.startswith("media-source://media_source/local/chronik/")
+    media_root = hass.config.media_dirs.get("local") or hass.config.path("media")
+    copy = Path(media_root, "chronik", image.rsplit("/", 1)[1])
+    assert copy.read_bytes() == b"x"
+
+    # Deleting the entry removes the copy.
+    await hass.services.async_call(DOMAIN, "delete_entry", {"uid": events[0].uid}, blocking=True)
+    await hass.async_block_till_done()
+    assert not copy.exists()
 
     # Images given to add_entry are stored as well.
     await hass.services.async_call(

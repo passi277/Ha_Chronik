@@ -36,8 +36,10 @@ Manuell: Ordner `custom_components/chronik` nach `config/custom_components/` kop
 Unter *KI-Befunde* lässt sich ein **Bildordner** angeben (z. B. `/media/llmvision/snapshots`).
 Bilder, die dort kurz vor einem neuen Befund gespeichert wurden (Zeitfenster einstellbar, Standard 3 min),
 werden automatisch an den Eintrag gehängt – ideal für LLM Vision mit `expose_images: true`.
+Die Bilder werden dabei nach `/media/chronik` kopiert, weil LLM Vision Schnappschüsse ohne
+Timeline-Eintrag wieder löscht. Die Kopien werden mit dem Eintrag (Aufbewahrungsdauer/Löschen) entfernt.
 Die Karte zeigt sie als Vorschaubild in der Zeitleiste und als Galerie mit Vollbild im Detailfenster.
-`chronik.backfill` hängt Bilder auch nachträglich an ältere Befunde, solange die Dateien noch existieren.
+`chronik.backfill` hängt Bilder auch nachträglich an ältere Befunde – aber nur, solange die Originaldateien noch existieren.
 
 ## Services
 
