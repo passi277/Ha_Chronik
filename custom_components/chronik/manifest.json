@@ -1,13 +1,22 @@
 {
   "domain": "chronik",
   "name": "Chronik",
-  "after_dependencies": ["recorder"],
-  "codeowners": ["@passi277"],
+  "after_dependencies": [
+    "frontend",
+    "http",
+    "recorder"
+  ],
+  "codeowners": [
+    "@passi277"
+  ],
   "config_flow": true,
+  "dependencies": [
+    "websocket_api"
+  ],
   "documentation": "https://github.com/passi277/ha_chronik",
   "integration_type": "service",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/passi277/ha_chronik/issues",
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

@@ -63,7 +63,26 @@ Einträge werden nicht überschrieben.
 ### `chronik.delete_entry`
 Löscht einen Eintrag per `uid`.
 
-## Dashboard
+## Dashboard-Karte
+
+Die Integration bringt eine eigene Karte mit, die automatisch geladen wird (keine Ressource nötig):
+
+```yaml
+type: custom:chronik-card
+days: 7              # 7 oder 30 (umschaltbar in der Karte)
+# title: Chronik
+# categories: [rain, irrigation, mowing]   # nur bestimmte Kategorien
+# show_stats: true   # Kennzahlen-Kacheln
+# show_week: true    # Wochenstreifen mit Regenbalken
+# show_filters: true # Filter-Chips
+# limit: 25          # Einträge pro „mehr anzeigen“
+# animations: full   # full | reduced | off
+```
+
+Kennzahlen und Tage im Wochenstreifen sind antippbar und filtern die Zeitleiste;
+ein Eintrag öffnet die Detailansicht. Laufende Vorgänge erscheinen oben als Banner.
+
+Alternativ funktioniert die eingebaute Kalenderkarte:
 
 ```yaml
 type: calendar

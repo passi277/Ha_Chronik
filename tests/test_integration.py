@@ -191,3 +191,28 @@ async def test_entries_persist(hass: HomeAssistant, entry: MockConfigEntry) -> N
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert [e["summary"] for e in await _events(hass, "calendar.chronik_regen")] == ["Notiz"]
+
+
+async def test_websocket_events(hass: HomeAssistant, entry: MockConfigEntry, hass_ws_client) -> None:
+    """The card API returns entries with category, label and data."""
+    await hass.services.async_call(
+        DOMAIN, "add_entry", {"category": "ai", "title": "🤖 Pool: Wasser klar"}, blocking=True
+    )
+    client = await hass_ws_client(hass)
+    now = dt_util.now()
+    await client.send_json_auto_id(
+        {
+            "type": "chronik/events",
+            "start": (now - timedelta(days=1)).isoformat(),
+            "end": (now + timedelta(hours=1)).isoformat(),
+        }
+    )
+    msg = await client.receive_json()
+    assert msg["success"]
+    result = msg["result"]
+    assert result["categories"] == ["rain", "irrigation", "mowing", "ai"]
+    assert len(result["events"]) == 1
+    event = result["events"][0]
+    assert event["category"] == "ai"
+    assert event["label"] == "Pool: Wasser klar"
+    assert event["running"] is False

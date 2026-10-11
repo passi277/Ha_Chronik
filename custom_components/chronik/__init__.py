@@ -18,10 +18,14 @@ type ChronikConfigEntry = ConfigEntry[ChronikCoordinator]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the services."""
+    """Register services, websocket API and the dashboard card."""
+    from .frontend import async_register_card  # noqa: PLC0415
     from .services import async_register_services  # noqa: PLC0415
+    from .websocket import async_register_websocket  # noqa: PLC0415
 
     async_register_services(hass)
+    async_register_websocket(hass)
+    await async_register_card(hass)
     return True
 
 
