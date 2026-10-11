@@ -3,7 +3,7 @@
   "name": "Chronik",
   "after_dependencies": [
     "frontend",
-    "http",
+    "lovelace",
     "recorder"
   ],
   "codeowners": [
@@ -11,6 +11,7 @@
   ],
   "config_flow": true,
   "dependencies": [
+    "http",
     "websocket_api"
   ],
   "documentation": "https://github.com/passi277/ha_chronik",
@@ -18,5 +19,5 @@
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/passi277/ha_chronik/issues",
   "requirements": [],
-  "version": "0.3.1"
+  "version": "0.3.2"
 }

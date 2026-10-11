@@ -76,7 +76,8 @@ Löscht einen Eintrag per `uid`.
 
 ## Dashboard-Karte
 
-Die Integration bringt eine eigene Karte mit, die automatisch geladen wird (keine Ressource nötig):
+Die Integration bringt eine eigene Karte mit. Sie wird unter `/chronik/chronik-card.js` ausgeliefert und
+beim Start automatisch als Dashboard-Ressource eingetragen bzw. aktualisiert (Storage-Modus):
 
 ```yaml
 type: custom:chronik-card
@@ -90,9 +91,9 @@ days: 7              # 7 oder 30 (umschaltbar in der Karte)
 # animations: full   # full | reduced | off
 ```
 
-Zeigt die Karte „Konfigurationsfehler“, wurde der Kartencode noch nicht geladen (z. B. in der
-Companion-App ohne Neuladen). Dann die App/Seite neu laden oder die Karte als Dashboard-Ressource
-eintragen: *Einstellungen → Dashboards → Ressourcen* → `/chronik_static/chronik-card.js`, Typ *JavaScript-Modul*.
+Zeigt die Karte „Konfigurationsfehler“, wurde der Kartencode noch nicht geladen: App/Seite neu laden
+(Companion-App: *Frontend-Cache zurücksetzen*). Fehlt die Kartendatei, steht ein Fehler im Log;
+in den Diagnosedaten der Integration steht unter `card`, ob die Datei vorhanden ist und ausgeliefert wird.
 
 Kennzahlen und Tage im Wochenstreifen sind antippbar und filtern die Zeitleiste;
 ein Eintrag öffnet die Detailansicht. Laufende Vorgänge erscheinen oben als Banner.
