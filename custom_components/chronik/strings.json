@@ -1,0 +1,273 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Chronik",
+        "description": "Name of the Chronik. Afterwards you choose the sources per category – every page is optional and can be changed later in the options.",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "rain": {
+        "title": "Rain",
+        "description": "A sensor with the daily (or total) rain amount. Every increase is recorded; a pause longer than the gap starts a new rain episode.",
+        "data": {
+          "rain_sensor": "Rain amount sensor",
+          "rain_gap_minutes": "Gap between episodes"
+        },
+        "data_description": {
+          "rain_sensor": "e.g. rain today in mm",
+          "rain_gap_minutes": "Without new rain for this long, the episode ends."
+        }
+      },
+      "irrigation": {
+        "title": "Irrigation",
+        "description": "One entity per zone that is on/open while the zone is watering. Optionally a water meter for the volume.",
+        "data": {
+          "irrigation_entities": "Zones",
+          "irrigation_meter": "Water meter (optional)",
+          "irrigation_min_minutes": "Minimum duration"
+        },
+        "data_description": {
+          "irrigation_meter": "Cumulative meter in liters.",
+          "irrigation_min_minutes": "Shorter runs are ignored."
+        }
+      },
+      "mowing": {
+        "title": "Mowing",
+        "description": "Lawn mowers. Short pauses (e.g. charging) are merged into one mowing session.",
+        "data": {
+          "mowing_entities": "Lawn mowers",
+          "mowing_merge_minutes": "Merge pauses up to",
+          "mowing_min_minutes": "Minimum duration"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "Entities that are active during backwash (timer, switch …) and/or counters that are reset after backwashing (e.g. pump hours since backwash).",
+        "data": {
+          "pool_entities": "Backwash entities",
+          "pool_counters": "Reset counters",
+          "pool_reset_threshold": "Reset threshold"
+        },
+        "data_description": {
+          "pool_reset_threshold": "A drop of a counter to this value or below counts as reset."
+        }
+      },
+      "alarm": {
+        "title": "Alarms",
+        "description": "Alarm panels (recorded when triggered), sirens and binary sensors (recorded while on).",
+        "data": {
+          "alarm_entities": "Alarm entities",
+          "alarm_log_arming": "Also record arming/disarming"
+        }
+      },
+      "ai": {
+        "title": "AI findings",
+        "description": "Text entities (input_text/sensor) holding AI results. Every new text becomes an entry.",
+        "data": {
+          "ai_entities": "Text entities"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Chronik options",
+        "description": "Choose a category to change its sources, then save.",
+        "menu_options": {
+          "rain": "Rain",
+          "irrigation": "Irrigation",
+          "mowing": "Mowing",
+          "pool": "Pool",
+          "alarm": "Alarms",
+          "ai": "AI findings",
+          "general": "General",
+          "save": "Save"
+        }
+      },
+      "rain": {
+        "title": "Rain",
+        "description": "A sensor with the daily (or total) rain amount. Every increase is recorded; a pause longer than the gap starts a new rain episode.",
+        "data": {
+          "rain_sensor": "Rain amount sensor",
+          "rain_gap_minutes": "Gap between episodes"
+        },
+        "data_description": {
+          "rain_sensor": "e.g. rain today in mm",
+          "rain_gap_minutes": "Without new rain for this long, the episode ends."
+        }
+      },
+      "irrigation": {
+        "title": "Irrigation",
+        "description": "One entity per zone that is on/open while the zone is watering. Optionally a water meter for the volume.",
+        "data": {
+          "irrigation_entities": "Zones",
+          "irrigation_meter": "Water meter (optional)",
+          "irrigation_min_minutes": "Minimum duration"
+        },
+        "data_description": {
+          "irrigation_meter": "Cumulative meter in liters.",
+          "irrigation_min_minutes": "Shorter runs are ignored."
+        }
+      },
+      "mowing": {
+        "title": "Mowing",
+        "description": "Lawn mowers. Short pauses (e.g. charging) are merged into one mowing session.",
+        "data": {
+          "mowing_entities": "Lawn mowers",
+          "mowing_merge_minutes": "Merge pauses up to",
+          "mowing_min_minutes": "Minimum duration"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "Entities that are active during backwash (timer, switch …) and/or counters that are reset after backwashing (e.g. pump hours since backwash).",
+        "data": {
+          "pool_entities": "Backwash entities",
+          "pool_counters": "Reset counters",
+          "pool_reset_threshold": "Reset threshold"
+        },
+        "data_description": {
+          "pool_reset_threshold": "A drop of a counter to this value or below counts as reset."
+        }
+      },
+      "alarm": {
+        "title": "Alarms",
+        "description": "Alarm panels (recorded when triggered), sirens and binary sensors (recorded while on).",
+        "data": {
+          "alarm_entities": "Alarm entities",
+          "alarm_log_arming": "Also record arming/disarming"
+        }
+      },
+      "ai": {
+        "title": "AI findings",
+        "description": "Text entities (input_text/sensor) holding AI results. Every new text becomes an entry.",
+        "data": {
+          "ai_entities": "Text entities"
+        }
+      },
+      "general": {
+        "title": "General",
+        "description": "How long entries are kept (0 = forever).",
+        "data": {
+          "retention_days": "Retention (days)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "calendar": {
+      "rain": {
+        "name": "Rain"
+      },
+      "irrigation": {
+        "name": "Irrigation"
+      },
+      "mowing": {
+        "name": "Mowing"
+      },
+      "pool": {
+        "name": "Pool"
+      },
+      "alarm": {
+        "name": "Alarms"
+      },
+      "ai": {
+        "name": "AI findings"
+      },
+      "summary": {
+        "name": "Daily summary"
+      }
+    }
+  },
+  "selector": {
+    "category": {
+      "options": {
+        "rain": "Rain",
+        "irrigation": "Irrigation",
+        "mowing": "Mowing",
+        "pool": "Pool",
+        "alarm": "Alarms",
+        "ai": "AI findings"
+      }
+    }
+  },
+  "services": {
+    "add_entry": {
+      "name": "Add entry",
+      "description": "Adds an entry to the Chronik, e.g. from an automation.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Only needed with several Chronik entries."
+        },
+        "category": {
+          "name": "Category",
+          "description": "Calendar the entry belongs to."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Short text shown in the calendar."
+        },
+        "description": {
+          "name": "Description",
+          "description": "Long text, e.g. a full AI response."
+        },
+        "start": {
+          "name": "Start",
+          "description": "Defaults to now."
+        },
+        "end": {
+          "name": "End",
+          "description": "Defaults to the start (point entry)."
+        },
+        "data": {
+          "name": "Data",
+          "description": "Additional values stored with the entry."
+        }
+      }
+    },
+    "delete_entry": {
+      "name": "Delete entry",
+      "description": "Deletes an entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Only needed with several Chronik entries."
+        },
+        "uid": {
+          "name": "UID",
+          "description": "UID of the entry (from the calendar or add_entry)."
+        }
+      }
+    },
+    "backfill": {
+      "name": "Backfill from history",
+      "description": "Reconstructs entries of the past days from the recorder history. Limited by the recorder's keep days.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Only needed with several Chronik entries."
+        },
+        "days": {
+          "name": "Days",
+          "description": "How many days to go back."
+        },
+        "categories": {
+          "name": "Categories",
+          "description": "Default: all."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_entry": {
+      "message": "No loaded Chronik entry found."
+    },
+    "multiple_entries": {
+      "message": "Several Chronik entries exist, please choose one."
+    }
+  }
+}

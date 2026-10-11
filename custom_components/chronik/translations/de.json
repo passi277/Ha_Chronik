@@ -1,0 +1,273 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Chronik",
+        "description": "Name der Chronik. Danach wählst du die Quellen pro Kategorie – jede Seite ist optional und später in den Optionen änderbar.",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "rain": {
+        "title": "Regen",
+        "description": "Sensor mit der Regenmenge des Tages (oder gesamt). Jeder Anstieg wird erfasst; eine Pause länger als die Lücke beginnt eine neue Regenphase.",
+        "data": {
+          "rain_sensor": "Regenmengen-Sensor",
+          "rain_gap_minutes": "Lücke zwischen Regenphasen"
+        },
+        "data_description": {
+          "rain_sensor": "z. B. Regen heute in mm",
+          "rain_gap_minutes": "Kommt so lange kein neuer Regen, endet die Phase."
+        }
+      },
+      "irrigation": {
+        "title": "Bewässerung",
+        "description": "Pro Zone eine Entität, die während der Bewässerung an/offen ist. Optional ein Wasserzähler für die Menge.",
+        "data": {
+          "irrigation_entities": "Zonen",
+          "irrigation_meter": "Wasserzähler (optional)",
+          "irrigation_min_minutes": "Mindestdauer"
+        },
+        "data_description": {
+          "irrigation_meter": "Fortlaufender Zähler in Litern.",
+          "irrigation_min_minutes": "Kürzere Läufe werden ignoriert."
+        }
+      },
+      "mowing": {
+        "title": "Mähen",
+        "description": "Mähroboter. Kurze Pausen (z. B. Laden) werden zu einem Mähvorgang zusammengefasst.",
+        "data": {
+          "mowing_entities": "Mähroboter",
+          "mowing_merge_minutes": "Pausen zusammenfassen bis",
+          "mowing_min_minutes": "Mindestdauer"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "Entitäten, die während des Rückspülens aktiv sind (Timer, Schalter …) und/oder Zähler, die nach dem Rückspülen zurückgesetzt werden (z. B. Pumpenstunden seit Rückspülen).",
+        "data": {
+          "pool_entities": "Rückspül-Entitäten",
+          "pool_counters": "Rücksetz-Zähler",
+          "pool_reset_threshold": "Rücksetz-Schwelle"
+        },
+        "data_description": {
+          "pool_reset_threshold": "Fällt ein Zähler auf diesen Wert oder darunter, gilt er als zurückgesetzt."
+        }
+      },
+      "alarm": {
+        "title": "Alarme",
+        "description": "Alarmzentralen (erfasst bei Auslösung), Sirenen und Binärsensoren (erfasst solange an).",
+        "data": {
+          "alarm_entities": "Alarm-Entitäten",
+          "alarm_log_arming": "Auch Scharf-/Unscharfschalten erfassen"
+        }
+      },
+      "ai": {
+        "title": "KI-Befunde",
+        "description": "Text-Entitäten (input_text/sensor) mit KI-Ergebnissen. Jeder neue Text wird ein Eintrag.",
+        "data": {
+          "ai_entities": "Text-Entitäten"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Chronik-Optionen",
+        "description": "Wähle eine Kategorie, um ihre Quellen zu ändern, und speichere danach.",
+        "menu_options": {
+          "rain": "Regen",
+          "irrigation": "Bewässerung",
+          "mowing": "Mähen",
+          "pool": "Pool",
+          "alarm": "Alarme",
+          "ai": "KI-Befunde",
+          "general": "Allgemein",
+          "save": "Speichern"
+        }
+      },
+      "rain": {
+        "title": "Regen",
+        "description": "Sensor mit der Regenmenge des Tages (oder gesamt). Jeder Anstieg wird erfasst; eine Pause länger als die Lücke beginnt eine neue Regenphase.",
+        "data": {
+          "rain_sensor": "Regenmengen-Sensor",
+          "rain_gap_minutes": "Lücke zwischen Regenphasen"
+        },
+        "data_description": {
+          "rain_sensor": "z. B. Regen heute in mm",
+          "rain_gap_minutes": "Kommt so lange kein neuer Regen, endet die Phase."
+        }
+      },
+      "irrigation": {
+        "title": "Bewässerung",
+        "description": "Pro Zone eine Entität, die während der Bewässerung an/offen ist. Optional ein Wasserzähler für die Menge.",
+        "data": {
+          "irrigation_entities": "Zonen",
+          "irrigation_meter": "Wasserzähler (optional)",
+          "irrigation_min_minutes": "Mindestdauer"
+        },
+        "data_description": {
+          "irrigation_meter": "Fortlaufender Zähler in Litern.",
+          "irrigation_min_minutes": "Kürzere Läufe werden ignoriert."
+        }
+      },
+      "mowing": {
+        "title": "Mähen",
+        "description": "Mähroboter. Kurze Pausen (z. B. Laden) werden zu einem Mähvorgang zusammengefasst.",
+        "data": {
+          "mowing_entities": "Mähroboter",
+          "mowing_merge_minutes": "Pausen zusammenfassen bis",
+          "mowing_min_minutes": "Mindestdauer"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "description": "Entitäten, die während des Rückspülens aktiv sind (Timer, Schalter …) und/oder Zähler, die nach dem Rückspülen zurückgesetzt werden (z. B. Pumpenstunden seit Rückspülen).",
+        "data": {
+          "pool_entities": "Rückspül-Entitäten",
+          "pool_counters": "Rücksetz-Zähler",
+          "pool_reset_threshold": "Rücksetz-Schwelle"
+        },
+        "data_description": {
+          "pool_reset_threshold": "Fällt ein Zähler auf diesen Wert oder darunter, gilt er als zurückgesetzt."
+        }
+      },
+      "alarm": {
+        "title": "Alarme",
+        "description": "Alarmzentralen (erfasst bei Auslösung), Sirenen und Binärsensoren (erfasst solange an).",
+        "data": {
+          "alarm_entities": "Alarm-Entitäten",
+          "alarm_log_arming": "Auch Scharf-/Unscharfschalten erfassen"
+        }
+      },
+      "ai": {
+        "title": "KI-Befunde",
+        "description": "Text-Entitäten (input_text/sensor) mit KI-Ergebnissen. Jeder neue Text wird ein Eintrag.",
+        "data": {
+          "ai_entities": "Text-Entitäten"
+        }
+      },
+      "general": {
+        "title": "Allgemein",
+        "description": "Wie lange Einträge aufbewahrt werden (0 = für immer).",
+        "data": {
+          "retention_days": "Aufbewahrung (Tage)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "calendar": {
+      "rain": {
+        "name": "Regen"
+      },
+      "irrigation": {
+        "name": "Bewässerung"
+      },
+      "mowing": {
+        "name": "Mähen"
+      },
+      "pool": {
+        "name": "Pool"
+      },
+      "alarm": {
+        "name": "Alarme"
+      },
+      "ai": {
+        "name": "KI-Befunde"
+      },
+      "summary": {
+        "name": "Tagesbilanz"
+      }
+    }
+  },
+  "selector": {
+    "category": {
+      "options": {
+        "rain": "Regen",
+        "irrigation": "Bewässerung",
+        "mowing": "Mähen",
+        "pool": "Pool",
+        "alarm": "Alarme",
+        "ai": "KI-Befunde"
+      }
+    }
+  },
+  "services": {
+    "add_entry": {
+      "name": "Eintrag hinzufügen",
+      "description": "Fügt der Chronik einen Eintrag hinzu, z. B. aus einer Automation.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Nur bei mehreren Chroniken nötig."
+        },
+        "category": {
+          "name": "Kategorie",
+          "description": "Kalender, zu dem der Eintrag gehört."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Kurzer Text im Kalender."
+        },
+        "description": {
+          "name": "Beschreibung",
+          "description": "Langtext, z. B. die vollständige KI-Antwort."
+        },
+        "start": {
+          "name": "Beginn",
+          "description": "Standard: jetzt."
+        },
+        "end": {
+          "name": "Ende",
+          "description": "Standard: wie Beginn (Punkt-Eintrag)."
+        },
+        "data": {
+          "name": "Daten",
+          "description": "Zusätzliche Werte, die mit dem Eintrag gespeichert werden."
+        }
+      }
+    },
+    "delete_entry": {
+      "name": "Eintrag löschen",
+      "description": "Löscht einen Eintrag.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Nur bei mehreren Chroniken nötig."
+        },
+        "uid": {
+          "name": "UID",
+          "description": "UID des Eintrags (aus dem Kalender oder add_entry)."
+        }
+      }
+    },
+    "backfill": {
+      "name": "Aus Verlauf nachtragen",
+      "description": "Rekonstruiert Einträge der letzten Tage aus dem Recorder-Verlauf. Begrenzt durch die Aufbewahrungsdauer des Recorders.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Chronik",
+          "description": "Nur bei mehreren Chroniken nötig."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Wie viele Tage zurück."
+        },
+        "categories": {
+          "name": "Kategorien",
+          "description": "Standard: alle."
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "no_entry": {
+      "message": "Keine geladene Chronik gefunden."
+    },
+    "multiple_entries": {
+      "message": "Es gibt mehrere Chroniken, bitte eine auswählen."
+    }
+  }
+}

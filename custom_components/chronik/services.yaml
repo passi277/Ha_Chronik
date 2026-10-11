@@ -1,0 +1,72 @@
+add_entry:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: chronik
+    category:
+      required: true
+      selector:
+        select:
+          translation_key: category
+          options:
+            - rain
+            - irrigation
+            - mowing
+            - pool
+            - alarm
+            - ai
+    title:
+      required: true
+      example: "🤖 Pool: Wasser klar"
+      selector:
+        text:
+    description:
+      selector:
+        text:
+          multiline: true
+    start:
+      selector:
+        datetime:
+    end:
+      selector:
+        datetime:
+    data:
+      selector:
+        object:
+delete_entry:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: chronik
+    uid:
+      required: true
+      selector:
+        text:
+backfill:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: chronik
+    days:
+      default: 7
+      selector:
+        number:
+          min: 1
+          max: 365
+          unit_of_measurement: d
+          mode: box
+    categories:
+      selector:
+        select:
+          multiple: true
+          translation_key: category
+          options:
+            - rain
+            - irrigation
+            - mowing
+            - pool
+            - alarm
+            - ai
